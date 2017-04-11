@@ -1,7 +1,29 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
+from scipy import stats
 import functools
+import textwrap
+import invisible_cities.core.fit_functions as fitf
+
+def compute_profile_histogram(x, y, xr, nbins=50):
+
+    assert(len(x) == len(y))
+    n = len(x)
+    means_result = stats.binned_statistic(x, [y, y**2], bins=nbins,
+                   range=xr, statistic='mean')
+    means, means2 = means_result.statistic
+    standard_deviations = np.sqrt(means2 - means**2)/np.sqrt(n/nbins)
+    bin_edges = means_result.bin_edges
+    bin_centers = (bin_edges[:-1] + bin_edges[1:])/2.
+    bin_hwidths = (bin_edges[1] - bin_edges[0]) / 2.
+    return bin_centers, bin_hwidths, means, standard_deviations
+
+def plot_profile_histogram(x, y, xr, nbins=50):
+    xp, xep, yp, yep = compute_profile_histogram(x, y, xr, nbins)
+    plt.errorbar(x=xp, xerr=xep, y=yp, yerr=yep,
+                 linestyle='none', marker='.')
+    return xp, xep, yp, yep
 
 def labels(xlabel, ylabel):
     """
@@ -90,12 +112,12 @@ def covariance(x, y):
     plt.arrow(x0, y0, x1, y1, head_width=0.1*lx, head_length=0.1*ly, fc='r', ec='r')
     return l, v
 
-def reso(values):
+def reso(values, x=41.5):
     _, mu, sigma = values
     r = 235. * sigma/mu
-    return r, r * (41.5/2458)**0.5
+    return r, r * (x/2458)**0.5
 
-def gausstext(values):
+def gausstext(f):
     return textwrap.dedent("""
         $\mu$ = {:.1f}
         $\sigma$ = {:.2f}

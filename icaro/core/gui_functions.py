@@ -6,7 +6,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from invisible_cities.core.mpl_functions import set_plot_labels
+from invisible_cities.core.mpl_functions import set_plot_labels, circles
 from invisible_cities.core.core_functions import define_window
 from invisible_cities.core.core_functions import loc_elem_1d
 from invisible_cities.core.system_of_units_c import units
@@ -131,7 +131,7 @@ def fplot_s12(S12, figsize=(10,10)):
         t = S12[0][0]
         E = S12[0][1]
         ax1 = fig.add_subplot(1, 1, 1)
-        ax1.plot(t, E)
+        ax1.plot(t/units.mus, E)
     else:
         x = 3
         y = xy/x
@@ -141,5 +141,63 @@ def fplot_s12(S12, figsize=(10,10)):
             ax1 = fig.add_subplot(x, y, i+1)
             t = S12[i][0]
             E = S12[i][1]
-            ax1.plot(t, E)
+            ax1.plot(t/units.mus, E)
     return fig
+
+
+def fplot_s2si_map(S2Si, xs, ys, cmap='Blues', figsize=(10,10)):
+        """Plot a map of the energies of S2Si objects."""
+        radius = 2
+        fig = Figure(figsize=figsize)
+        r = np.ones(len(xs)) * radius
+        col = np.zeros(len(xs))
+        for sipm in S2Si.values():
+            for nsipm, E in sipm.items():
+                ene = np.sum(E)
+                col[nsipm] = ene
+        ax1 = fig.add_subplot(aspect="equal")
+        circles(xs, ys, r, c=col, alpha=0.5, ec="none", cmap=cmap)
+        ax1.colorbar()
+
+        ax1.xlim(-198, 198)
+        ax1.ylim(-198, 198)
+
+        return fig
+
+def fill_col_vector(S2Si, dim):
+
+    col = np.zeros(dim)
+    for sipm in S2Si.values():
+        for nsipm, E in sipm.items():
+            ene = np.sum(E)
+            col[nsipm] = ene
+    return col
+
+def add_simap(S2Si, xs, COL):
+
+    col = fill_col_vector(S2Si, len(xs))
+    COL.append(col)
+
+def get_simap(x, y, col, radius=5, cmap='Blues', figsize=(10,10)):
+
+    fig = Figure(figsize=figsize)
+    ax = fig.add_subplot(1, 1, 1)
+    r = np.ones(len(x)) * radius
+
+    im = ax.scatter(x, y, c=col, s=r, cmap=cmap)
+    fig.colorbar(im, ax=ax)
+    im.set_clim(0.0, 1.0)
+    return fig
+
+def fplot_map(COL, xs, ys, radius=5, cmap='Blues', figsize=(10,10)):
+
+    col = COL[0]
+    for c in COL[1:]:
+        col+=c
+    return get_simap(xs, ys, col, radius, cmap=cmap, figsize=figsize)
+
+def fplot_s2si_map(S2Si, xs, ys, radius=5,cmap='Blues', figsize=(10,10)):
+
+    col = fill_col_vector(S2Si, len(xs))
+    c = col/max(col)
+    return get_simap(xs, ys, c, radius, cmap=cmap, figsize=figsize)

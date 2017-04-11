@@ -30,7 +30,7 @@ class EventPmaps:
 
     def __init__(self, run_number,
                  s1par, s2par, thr,
-                 verbose=True):
+                 verbose=False):
         """
         input:
 
