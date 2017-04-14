@@ -64,7 +64,8 @@ def pdf(data, *args, **kwargs):
     Create a normalized histogram with appropiate range.
     """
     data = np.array(data)
-    h = hist(data, *args, **kwargs, weights=np.ones_like(data)/len(data))
+    h = plt.hist(data, *args, **kwargs,
+                    weights=np.ones_like(data)/len(data))
     plt.yscale("log")
     plt.ylim(1e-4, 1.)
     return h
