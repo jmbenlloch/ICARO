@@ -70,6 +70,19 @@ def pdf(data, *args, **kwargs):
     plt.ylim(1e-4, 1.)
     return h
 
+def pdf2(datax, datay, *args, **kwargs):
+    """
+    Create a normalized 2d histogram with appropiate range.
+    """
+    datax = np.array(datax)
+    datay= np.array(datay)
+    h = plt.hist2d(datax, datay, *args, **kwargs,
+                    weights=np.ones_like(data)/len(data))
+    plt.yscale("log")
+    plt.ylim(1e-4, 1.)
+    return h
+
+
 def scatter(*args, **kwargs):
     """
     Create a figure and then a scatter plot

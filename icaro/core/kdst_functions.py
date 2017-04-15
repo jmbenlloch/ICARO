@@ -4,8 +4,65 @@ import pandas as pd
 import invisible_cities.core.fit_functions as fitf
 from   invisible_cities.core.system_of_units_c import units
 from   invisible_cities.core.mpl_functions import set_plot_labels
+from invisible_cities.core.core_functions import in_range
 import matplotlib.pyplot as plt
 from   collections import namedtuple
+import datetime
+
+
+
+def time_from_timestamp(timestamp, tformat='%Y-%m-%d %H:%M:%S'):
+    return datetime.datetime.fromtimestamp(timestamp).strftime(tformat)
+
+
+def lifetime(dst, zrange=(25,530), Erange=(1e+3, 70e3), nbins=10):
+    """Compute lifetime as a function of t."""
+
+    print('using data set with length {}'.format(len(dst)))
+    st0 = time_from_timestamp(dst.time.values[0])
+    st1 = time_from_timestamp(dst.time.values[-1])
+    it0 = 0
+    it1 = len(dst)
+    print('t0 = {} (index = {}) t1 = {} (index = {})'.format(st0, it0, st1, it1))
+
+    indx  = int(len(dst) / nbins)
+    print('bin length = {}'.format(indx))
+
+    CHI2 = []
+    LAMBDA = []
+    ELAMBDA = []
+    TSTAMP = []
+
+    for i in range(nbins):
+        k0 = i * indx
+        k = (i+1) * indx
+        print(' ---fit over events between {} and {}'.format(k0, k))
+        st0 = time_from_timestamp(dst.time.values[k0])
+        st =  time_from_timestamp(dst.time.values[k])
+
+        print('time0 = {} time1 = {}'.format(st0,st))
+
+        tleg = dst[in_range(dst.time.values, minval=dst.time.values[k0], maxval=dst.time.values[k])]
+        print('size of time leg = {}'.format(len(tleg)))
+        F, x, y, sy = profile_and_fit(tleg.Z, tleg.S2e,
+                                      xrange=zrange,
+                                      yrange=Erange,
+                                      nbins=nbins,
+                                      fitpar=(50000,-300),
+                                      label=("Drift time ($\mu$s)", "S2 energy (pes)"))
+        print_fit(F)
+        chi = chi2(F, x, y, sy)
+        print('chi2 = {}'.format(chi))
+        CHI2.append(chi)
+        LAMBDA.append(F.values[1])
+        ELAMBDA.append(F.errors[1])
+        TSTAMP.append(st)
+
+    TIME = [datetime.datetime.strptime(elem,
+           '%Y-%m-%d %H:%M:%S') for elem in TSTAMP]
+
+    return CHI2, LAMBDA, ELAMBDA, TSTAMP, TIME
+
 
 class MapXY:
     def __init__(self, x, y, E):
