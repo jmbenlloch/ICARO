@@ -10,6 +10,12 @@ from   collections import namedtuple
 import datetime
 
 
+def time_vector_from_timestamp_vector(time):
+    st = [datetime.datetime.fromtimestamp(elem).strftime(
+          '%Y-%m-%d %H:%M:%S') for elem in time]
+    x = [datetime.datetime.strptime(elem, '%Y-%m-%d %H:%M:%S') for elem in st]
+    return x
+
 
 def time_from_timestamp(timestamp, tformat='%Y-%m-%d %H:%M:%S'):
     return datetime.datetime.fromtimestamp(timestamp).strftime(tformat)
